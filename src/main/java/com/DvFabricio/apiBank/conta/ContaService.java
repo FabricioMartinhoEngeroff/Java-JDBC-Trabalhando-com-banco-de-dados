@@ -1,12 +1,9 @@
 package com.DvFabricio.apiBank.conta;
 
 import com.DvFabricio.apiBank.ConnectionFactory;
-import com.DvFabricio.apiBank.domain.Cliente;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -30,29 +27,9 @@ public class ContaService {
     }
 
     public void abrir(DadosAberturaConta dadosDaConta) {
-        var cliente = new Cliente(dadosDaConta.dadosCliente());
-        var conta = new Conta(dadosDaConta.numero(), cliente);
-        if (contas.contains(conta)) {
-            throw new RegraDeNegocioException("Já existe outra conta aberta com o mesmo número!");
-        }
-        String sql = "INSERT INTO conta (numero, saldo, cliente_nome, client_cpf, cliente_email)" +
-                "VALUE (?, ?, ?, ?, ?)";
-
         Connection conn = connection.recuperarConexao();
+        new ContaDAO(conn).salvar(dadosDaConta);
 
-        try {
-            PreparedStatement preparedStatement = conn.prepareStatement(sql);
-
-            preparedStatement.setInt(1, conta.getNumero());
-            preparedStatement.setBigDecimal(2, BigDecimal.ZERO);
-            preparedStatement.setString(3, dadosDaConta.dadosCliente().nome());
-            preparedStatement.setString(4, dadosDaConta.dadosCliente().cpf());
-            preparedStatement.setString(5, dadosDaConta.dadosCliente().email());
-
-            preparedStatement.execute();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public void realizarSaque(Integer numeroDaConta, BigDecimal valor) {
